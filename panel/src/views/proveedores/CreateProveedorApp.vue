@@ -67,8 +67,7 @@ export default {
         telefono_alt: '',
         direccion: '',
         sitio: '',
-        notas: '',
-        estado: true
+        notas: ''
       },
       errors: {}
     };
@@ -81,7 +80,6 @@ export default {
       if (!this.form.email || !this.form.email.trim()) this.errors.email = 'Ingresa el email';
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email.trim())) this.errors.email = 'Ingresa un email valido';
       if (!this.form.telefono || !this.form.telefono.trim()) this.errors.telefono = 'Ingresa el telefono';
-      else if (!/^\+569\s?\d{8}$/.test(this.form.telefono.trim())) this.errors.telefono = 'Ingresa un celular chileno valido';
       if (!this.form.direccion || !this.form.direccion.trim()) this.errors.direccion = 'Ingresa la direccion';
       return !Object.keys(this.errors).length;
     },

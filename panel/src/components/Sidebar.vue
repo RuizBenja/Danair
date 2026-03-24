@@ -78,7 +78,7 @@
             <router-link to="/servicios-tecnicos" class="nav-link" active-class="active"><i class="fe fe-settings"></i> Servicios tecnicos</router-link>
           </li>
           <li class="nav-item" v-if="isAdmin">
-            <router-link to="/proyectos" class="nav-link" active-class="active"><i class="fe fe-briefcase"></i> Proyectos</router-link>
+            <router-link to="/proyectos" class="nav-link" active-class="active"><i class="fe fe-briefcase"></i> Proyectos destacados</router-link>
           </li>
           <li class="nav-item" v-if="isAdmin">
             <router-link to="/referencias" class="nav-link" active-class="active"><i class="fe fe-aperture"></i> Referencias</router-link>
@@ -161,8 +161,7 @@ export default {
       this.userTick = Date.now();
     },
     logout() {
-      this.$store.dispatch('saveToken', null);
-      localStorage.removeItem('usuario');
+      this.$store.dispatch('logout');
       this.$router.push({ name: 'login' });
     }
   },

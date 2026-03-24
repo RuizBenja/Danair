@@ -14,6 +14,7 @@ api.post('/servicio_tecnico', [authenticate.decodeToken, pathUpload], controller
 api.get('/servicio_tecnico', controller.list);
 api.get('/servicio_tecnico/:id', controller.get);
 api.put('/servicio_tecnico/:id', [authenticate.decodeToken, pathUpload], controller.update);
+api.put('/servicio_tecnico/:id/reorder', authenticate.decodeToken, controller.reorder);
 api.delete('/servicio_tecnico/:id', authenticate.decodeToken, controller.remove);
 api.get('/servicio_tecnico/imagen/:img', controller.obtener_imagen);
 

@@ -14,6 +14,7 @@ api.get('/listar_usuario_admin/:Filtro?', authenticate.decodeToken, usuarioContr
 api.get('/obtener_usuario_admin/:id', authenticate.decodeToken, usuarioController.obtener_usuario_admin);
 api.put('/actualizar_usuario_admin/:id', [authenticate.decodeToken, path], usuarioController.actualizar_usuario_admin);
 api.put('/cambiar_estado_usuario/:id', authenticate.decodeToken, usuarioController.cambiar_estado_usuario);
+api.delete('/eliminar_usuario_admin/:id', authenticate.decodeToken, usuarioController.eliminar_usuario_admin);
 api.put('/reset_password_admin/:id', authenticate.decodeToken, usuarioController.reset_password_admin);
 api.get('/obtener_avatar_usuario/:img', usuarioController.obtener_avatar_usuario);
 

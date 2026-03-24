@@ -9,8 +9,7 @@ var ProveedorSchema = Schema({
   telefono_alt: { type: String, default: '' },
   direccion: { type: String, default: '' },
   sitio: { type: String, default: '' },
-  notas: { type: String, default: '' },
-  estado: { type: Boolean, default: true },
+  notas: { type: String, default: '' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('proveedor', ProveedorSchema);

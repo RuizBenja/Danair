@@ -7,3 +7,8 @@ dist/
 back/uploads/
 panel/dist/
 tienda/
+panel/public/assets/js/theme.bundle.js
+panel/dist/assets/assets/js/theme.bundle.js
+panel/dist/assets/js/theme.bundle.js
+panel/public/assets/assets/js/theme.bundle.js
+panel/public/assets/js/theme.bundle.js

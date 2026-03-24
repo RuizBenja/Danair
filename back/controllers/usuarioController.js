@@ -194,6 +194,26 @@ const cambiar_estado_usuario = async function (req, res) {
   return res.status(200).send(usuario);
 };
 
+const eliminar_usuario_admin = async function (req, res) {
+  if (!req.user) return res.status(500).send({ data: undefined, message: 'ErrorToken' });
+  if (!isAdmin(req)) return res.status(403).send({ data: undefined, message: 'No autorizado' });
+
+  const id = req.params.id;
+  if (currentUserId(req) === String(id)) {
+    return res.status(400).send({ message: 'No puedes eliminar tu propio usuario' });
+  }
+
+  const usuario = await Usuario.findById({ _id: id });
+  if (!usuario) return res.status(404).send({ message: 'Usuario no encontrado' });
+
+  if (usuario.avatar && usuario.avatar !== DEFAULT_AVATAR) {
+    removeFileSafe(avatarDiskPath(usuario.avatar));
+  }
+
+  await Usuario.findByIdAndDelete({ _id: id });
+  return res.status(200).send({ ok: true });
+};
+
 const reset_password_admin = async function (req, res) {
   try {
     if (!req.user) return res.status(401).send({ message: 'ErrorToken' });
@@ -234,6 +254,7 @@ module.exports = {
   obtener_usuario_admin,
   actualizar_usuario_admin,
   cambiar_estado_usuario,
+  eliminar_usuario_admin,
   obtener_avatar_usuario,
   reset_password_admin
 };

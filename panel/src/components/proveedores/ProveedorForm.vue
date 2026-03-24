@@ -53,12 +53,6 @@
         <textarea class="form-control" rows="3" :value="value.notas" @input="updateField('notas', $event.target.value)" placeholder="Condiciones, formas de pago, observaciones"></textarea>
       </div>
     </div>
-    <div v-if="showEstado" class="col-12">
-      <div class="form-check form-switch mt-2">
-        <input class="form-check-input" type="checkbox" :checked="value.estado" @change="updateField('estado', $event.target.checked)" :id="estadoId">
-        <label class="form-check-label" :for="estadoId">Activo</label>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -73,14 +67,6 @@ export default {
     errors: {
       type: Object,
       default: () => ({})
-    },
-    showEstado: {
-      type: Boolean,
-      default: false
-    },
-    estadoId: {
-      type: String,
-      default: 'prov-estado'
     }
   },
   methods: {

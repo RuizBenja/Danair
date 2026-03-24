@@ -30,19 +30,11 @@
               </div>
             </div>
 
-            <div class="card">
-              <div class="card-body">
-                <div class="form-group">
-                  <label class="form-label">Nombre de la categoria</label>
-                  <input type="text" class="form-control" placeholder="Nueva categoria" v-model="nueva_categoria">
-                </div>
-                <hr class="my-4">
-                <div class="d-flex align-items-center gap-3">
-                  <button @click="crear_categoria()" class="btn btn-primary">Crear categoria</button>
-                  <router-link to="/categorias" class="btn btn-danger cancel-button">Cancelar</router-link>
-                </div>
-              </div>
-            </div>
+            <CategoriaForm
+              submit-label="Crear categoria"
+              cancel-link="/categorias"
+              @submit="crear_categoria"
+            />
           </div>
         </div>
       </div>
@@ -53,23 +45,15 @@
 <script>
 import Sidebar from '@/components/Sidebar.vue';
 import TopNav from '@/components/TopNav.vue';
+import CategoriaForm from '@/components/categorias/CategoriaForm.vue';
 import axios from 'axios';
 
 export default {
   name: 'CreateCategoriaApp',
-  components: { Sidebar, TopNav },
-  data() {
-    return {
-      nueva_categoria: ''
-    };
-  },
+  components: { Sidebar, TopNav, CategoriaForm },
   methods: {
-    crear_categoria() {
-      if (!this.nueva_categoria) {
-        this.$notify({ group: 'foo', title: 'ERROR', text: 'Ingrese el titulo de la categoria', type: 'error' });
-        return;
-      }
-      axios.post(this.$url + '/crear_categoria_admin/', { titulo: this.nueva_categoria }, {
+    crear_categoria(titulo) {
+      axios.post(this.$url + '/crear_categoria_admin/', { titulo }, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: this.$store.state.token,
@@ -86,12 +70,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.cancel-button,
-.cancel-button:hover,
-.cancel-button:focus,
-.cancel-button:active {
-  color: #fff !important;
-}
-</style>

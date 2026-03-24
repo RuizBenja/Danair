@@ -28,11 +28,6 @@ api.get('/obtener_ficha_pdf_producto/:doc', productoController.obtener_ficha_pdf
 api.get('/obtener_producto_admin/:id',authenticate.decodeToken,productoController.obtener_producto_admin);
 api.put('/actualizar_producto_admin/:id',[authenticate.decodeToken,multipartProductos],productoController.actualizar_producto_admin);
 
-// Variedades (opcional para specs)
-api.post('/registro_variedad_producto',authenticate.decodeToken,productoController.registro_variedad_producto);
-api.get('/obtener_variedades_producto/:id',authenticate.decodeToken,productoController.obtener_variedades_producto);
-api.delete('/eliminar_variedad_producto/:id',authenticate.decodeToken,productoController.eliminar_variedad_producto);
-
 // Galeria
 api.post('/subir_imagen_producto_admin',[authenticate.decodeToken,multipartGaleria],productoController.subir_imagen_producto_admin);
 api.get('/obtener_galeria_producto/:img',productoController.obtener_galeria_producto);

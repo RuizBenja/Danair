@@ -1,12 +1,10 @@
 const Producto = require("../models/producto");
 const Categoria = require("../models/categoria");
 const Subcategoria = require("../models/subcategoria");
-const Variedad = require("../models/variedad");
 const Galeria = require("../models/galeria");
 const slugify = require("slugify");
 const path = require("path");
 const fs = require("fs");
-const mongoose = require("mongoose");
 const { ensureDir, validateWebp, validatePdf, deleteFileIfExists } = require('./mediaUtils');
 
 const UPLOADS_DIR = path.resolve(__dirname, '..', 'uploads');
@@ -227,39 +225,6 @@ const actualizar_producto_admin = async function (req, res) {
   }
 };
 
-const registro_variedad_producto = async (req, res) => {
-  if (!req.user) return res.status(500).send({ data: undefined, message: "ErrorToken" });
-  const data = req.body;
-  if (!data.producto) return res.status(400).send({ data: undefined, message: "El campo 'producto' es obligatorio." });
-  if (!mongoose.Types.ObjectId.isValid(data.producto)) return res.status(400).send({ data: undefined, message: "ID de producto invalido." });
-  try {
-    const variedad = await Variedad.create({
-      proveedor: data.proveedor || '',
-      variedad: data.variedad || '',
-      sku: data.sku || '',
-      producto: data.producto
-    });
-    res.status(200).send({ data: variedad });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({ data: undefined, message: "Error al registrar la variedad." });
-  }
-};
-
-const obtener_variedades_producto = async function (req, res) {
-  if (!req.user) return res.status(500).send({ data: undefined, message: "ErrorToken" });
-  let id = req.params["id"];
-  let variedades = await Variedad.find({ producto: id }).sort({ createdAt: -1 });
-  res.status(200).send({ variedades });
-};
-
-const eliminar_variedad_producto = async function (req, res) {
-  if (!req.user) return res.status(500).send({ data: undefined, message: "ErrorToken" });
-  let id = req.params["id"];
-  let variedad = await Variedad.findByIdAndRemove({ _id: id });
-  res.status(200).send({ variedad });
-};
-
 const listar_activos_productos_admin = async function (_req, res) {
   let productos = await Producto.find({ estado: true }).sort({ createdAt: -1 });
   res.status(200).send(productos);
@@ -442,7 +407,6 @@ const eliminar_producto_admin = async function (req, res) {
       deleteFileIfExists(ruta);
     });
     await Galeria.deleteMany({ producto: id });
-    await Variedad.deleteMany({ producto: id });
     const producto = await Producto.findByIdAndDelete({ _id: id });
     if (!producto) return res.status(404).send({ data: undefined, message: "Producto no encontrado" });
     if (producto.portada) deleteFileIfExists(path.join(PRODUCTOS_DIR, producto.portada));
@@ -460,9 +424,6 @@ module.exports = {
   obtener_portada_producto,
   obtener_producto_admin,
   actualizar_producto_admin,
-  registro_variedad_producto,
-  obtener_variedades_producto,
-  eliminar_variedad_producto,
   listar_activos_productos_admin,
   subir_imagen_producto_admin,
   obtener_galeria_producto,

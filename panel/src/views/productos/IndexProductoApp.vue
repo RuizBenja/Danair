@@ -28,10 +28,20 @@
             <div class="card">
               <div class="card-header">
                 <div class="row align-items-center">
-                  <div class="col">
+                  <div class="col-12 col-md">
                     <div class="input-group input-group-flush input-group-merge input-group-reverse">
                       <input class="form-control list-search" type="search" placeholder="Buscar por titulo, categoria, subcategoria, marca o modelo" v-model="Filtro">
                       <span class="input-group-text"><i class="fe fe-search"></i></span>
+                    </div>
+                  </div>
+                  <div class="col-12 col-md-auto mt-3 mt-md-0">
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-white btn-sm" type="button" @click="downloadCsv">
+                        <i class="fe fe-download me-1"></i> CSV
+                      </button>
+                      <button class="btn btn-white btn-sm" type="button" @click="printTable">
+                        <i class="fe fe-printer me-1"></i> Imprimir
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -155,6 +165,25 @@ export default {
     };
   },
   methods: {
+    escapeCsv(value) {
+      const text = String(value ?? '').replace(/"/g, '""');
+      return `"${text}"`;
+    },
+    getExportRows() {
+      return this.filteredProductos.map((item) => ({
+        titulo: item.titulo || '',
+        categoria: item.categoria || '',
+        subcategoria: item.subcategoria || '',
+        marca: item.marca || '',
+        serie: item.serie || '',
+        modelo: item.modelo || '',
+        tecnologia: item.tecnologia || '',
+        potencia: item.potencia || '',
+        presion: item.presion || '',
+        estado: item.estado ? 'Publicado' : 'Oculto',
+        arriendo: item.arriendo ? 'Si' : 'No'
+      }));
+    },
     initData() {
       this.loadData = true;
       axios.get(this.$url + '/listar_productos_admin/' + (this.Filtro || ''), {
@@ -178,6 +207,99 @@ export default {
     goNext() { if (this.currentPage <= Math.ceil(this.filteredProductos.length / this.perPage)) this.$refs.productos.goToPage(this.currentPage++); else this.$refs.productos.goToPage(Math.max(1, Math.ceil(this.filteredProductos.length / this.perPage))); },
     convertDate(date) {
       return moment(date).format('YYYY-MM-DD');
+    },
+    downloadCsv() {
+      const rows = this.getExportRows();
+      if (!rows.length) {
+        this.$notify({ group: 'foo', title: 'ERROR', type: 'error', text: 'No hay productos para exportar' });
+        return;
+      }
+
+      const headers = ['Titulo', 'Categoria', 'Subcategoria', 'Marca', 'Serie', 'Modelo', 'Tecnologia', 'Potencia', 'Presion', 'Estado', 'Arriendo'];
+      const csv = [
+        headers.join(','),
+        ...rows.map((row) => [
+          this.escapeCsv(row.titulo),
+          this.escapeCsv(row.categoria),
+          this.escapeCsv(row.subcategoria),
+          this.escapeCsv(row.marca),
+          this.escapeCsv(row.serie),
+          this.escapeCsv(row.modelo),
+          this.escapeCsv(row.tecnologia),
+          this.escapeCsv(row.potencia),
+          this.escapeCsv(row.presion),
+          this.escapeCsv(row.estado),
+          this.escapeCsv(row.arriendo)
+        ].join(','))
+      ].join('\n');
+
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `productos-${moment().format('YYYY-MM-DD')}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    },
+    printTable() {
+      const rows = this.getExportRows();
+      if (!rows.length) {
+        this.$notify({ group: 'foo', title: 'ERROR', type: 'error', text: 'No hay productos para imprimir' });
+        return;
+      }
+
+      const htmlRows = rows.map((row) => `
+        <tr>
+          <td>${row.titulo || '-'}</td>
+          <td>${row.categoria || '-'}</td>
+          <td>${row.marca || '-'}</td>
+          <td>${row.modelo || '-'}</td>
+          <td>${row.estado}</td>
+          <td>${row.arriendo}</td>
+        </tr>
+      `).join('');
+
+      const printWindow = window.open('', '_blank', 'width=1100,height=720');
+      if (!printWindow) {
+        this.$notify({ group: 'foo', title: 'ERROR', type: 'error', text: 'El navegador bloqueo la ventana de impresion' });
+        return;
+      }
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Productos</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 24px; color: #12263f; }
+              h1 { font-size: 24px; margin-bottom: 6px; }
+              p { color: #6e84a3; margin-bottom: 20px; }
+              table { width: 100%; border-collapse: collapse; }
+              th, td { border: 1px solid #dfe7f1; padding: 10px 12px; text-align: left; font-size: 13px; vertical-align: top; }
+              th { background: #f9fbfd; font-weight: 700; }
+            </style>
+          </head>
+          <body>
+            <h1>Listado de productos</h1>
+            <p>Registros: ${rows.length}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Titulo</th>
+                  <th>Categoria</th>
+                  <th>Marca</th>
+                  <th>Modelo</th>
+                  <th>Estado</th>
+                  <th>Arriendo</th>
+                </tr>
+              </thead>
+              <tbody>${htmlRows}</tbody>
+            </table>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
     },
     eliminarProducto(id) {
       axios.delete(this.$url + '/eliminar_producto_admin/' + id, {

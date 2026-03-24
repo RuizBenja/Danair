@@ -40,7 +40,7 @@
                 <div class="card" id="contactsList">
                   <div class="card-header">
                     <div class="row align-items-center">
-                      <div class="col">
+                      <div class="col-12 col-md">
                         <form>
                           <div class="input-group input-group-flush input-group-merge input-group-reverse">
                             <input class="form-control list-search" type="search" v-model="Filtro"
@@ -48,6 +48,16 @@
                             <span class="input-group-text"><i class="fe fe-search"></i></span>
                           </div>
                         </form>
+                      </div>
+                      <div class="col-12 col-md-auto mt-3 mt-md-0">
+                        <div class="d-flex gap-2">
+                          <button class="btn btn-white btn-sm" type="button" @click="downloadCsv">
+                            <i class="fe fe-download me-1"></i> CSV
+                          </button>
+                          <button class="btn btn-white btn-sm" type="button" @click="printTable">
+                            <i class="fe fe-printer me-1"></i> Imprimir
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -95,6 +105,14 @@
                                 <a style="cursor:pointer" class="dropdown-item" v-b-modal="'reset-' + item._id">
                                   Resetear contraseña
                                 </a>
+                                <a
+                                  v-if="!isCurrentUser(item)"
+                                  style="cursor:pointer"
+                                  class="dropdown-item text-danger"
+                                  v-b-modal="'delete-' + item._id"
+                                >
+                                  Eliminar
+                                </a>
                               </div>
                             </div>
 
@@ -132,6 +150,32 @@
                               <div class="d-flex justify-content-end gap-2">
                                 <b-button variant="secondary" @click="$bvModal.hide('reset-' + item._id)">Cancelar</b-button>
                                 <b-button variant="primary" @click="resetPassword(item._id)">Guardar</b-button>
+                              </div>
+                            </b-modal>
+
+                            <!-- Modal eliminar -->
+                            <b-modal
+                              centered
+                              :id="'delete-' + item._id"
+                              hide-footer
+                              title="Eliminar colaborador"
+                            >
+                              <div class="text-center my-4">
+                                <b-icon icon="trash-fill" variant="danger" font-scale="2.5"></b-icon>
+                                <h5 class="mt-3">
+                                  ¿Seguro que quieres eliminar a
+                                  <strong class="text-danger">{{ item.nombres }} {{ item.apellidos }}</strong>?
+                                </h5>
+                                <p class="text-muted mt-2">
+                                  Esta accion eliminara el colaborador de forma permanente.
+                                </p>
+                                <div class="mt-4 d-flex justify-content-center gap-2">
+                                  <b-button variant="primary" class="text-white"
+                                    @click="$bvModal.hide('delete-' + item._id)">Cancelar</b-button>
+                                  <b-button variant="danger" @click="deleteColaborador(item._id)">
+                                    Eliminar
+                                  </b-button>
+                                </div>
                               </div>
                             </b-modal>
 
@@ -206,6 +250,20 @@ export default {
   },
 
   methods: {
+    escapeCsv(value) {
+      const text = String(value ?? '').replace(/"/g, '""');
+      return `"${text}"`;
+    },
+    getExportRows() {
+      return this.colaboradores.map((item) => ({
+        nombreCompleto: `${item.nombres || ''} ${item.apellidos || ''}`.trim(),
+        nombres: item.nombres || '',
+        apellidos: item.apellidos || '',
+        email: item.email || '',
+        rol: item.rol || '',
+        estado: item.estado ? 'Activo' : 'Desactivado'
+      }));
+    },
     onLangsPageChange(toPage) { this.currentPage = toPage; },
     goPrev() { if (this.currentPage >= 2) this.$refs.colaboradores.goToPage(this.currentPage--); else this.$refs.colaboradores.goToPage(1); },
     goNext() { if (this.currentPage <= Math.ceil(this.colaboradores.length / this.perPage)) this.$refs.colaboradores.goToPage(this.currentPage++); else this.$refs.colaboradores.goToPage(Math.ceil(this.colaboradores.length / this.perPage)); },
@@ -248,6 +306,91 @@ export default {
       }
       this.filterKey++;
     },
+    downloadCsv() {
+      const rows = this.getExportRows();
+      if (!rows.length) {
+        this.$notify({ group: 'foo', title: 'ERROR', text: 'No hay colaboradores para exportar', type: 'error' });
+        return;
+      }
+
+      const headers = ['Nombre completo', 'Nombres', 'Apellidos', 'Email', 'Rol', 'Estado'];
+      const csv = [
+        headers.join(','),
+        ...rows.map((row) => [
+          this.escapeCsv(row.nombreCompleto),
+          this.escapeCsv(row.nombres),
+          this.escapeCsv(row.apellidos),
+          this.escapeCsv(row.email),
+          this.escapeCsv(row.rol),
+          this.escapeCsv(row.estado)
+        ].join(','))
+      ].join('\n');
+
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const date = new Date().toISOString().slice(0, 10);
+      link.href = url;
+      link.download = `colaboradores-${date}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    },
+    printTable() {
+      const rows = this.getExportRows();
+      if (!rows.length) {
+        this.$notify({ group: 'foo', title: 'ERROR', text: 'No hay colaboradores para imprimir', type: 'error' });
+        return;
+      }
+
+      const htmlRows = rows.map((row) => `
+        <tr>
+          <td>${row.nombreCompleto || '-'}</td>
+          <td>${row.email || '-'}</td>
+          <td>${row.rol || '-'}</td>
+          <td>${row.estado}</td>
+        </tr>
+      `).join('');
+
+      const printWindow = window.open('', '_blank', 'width=980,height=720');
+      if (!printWindow) {
+        this.$notify({ group: 'foo', title: 'ERROR', text: 'El navegador bloqueo la ventana de impresion', type: 'error' });
+        return;
+      }
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Colaboradores</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 24px; color: #12263f; }
+              h1 { font-size: 24px; margin-bottom: 6px; }
+              p { color: #6e84a3; margin-bottom: 20px; }
+              table { width: 100%; border-collapse: collapse; }
+              th, td { border: 1px solid #dfe7f1; padding: 10px 12px; text-align: left; font-size: 13px; vertical-align: top; }
+              th { background: #f9fbfd; font-weight: 700; }
+            </style>
+          </head>
+          <body>
+            <h1>Listado de colaboradores</h1>
+            <p>Registros: ${rows.length}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre completo</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>${htmlRows}</tbody>
+            </table>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    },
 
     eliminar(id, estado) {
       axios.put(this.$url + '/cambiar_estado_usuario/' + id, { estado: estado }, {
@@ -283,11 +426,42 @@ export default {
       });
     },
 
+    deleteColaborador(id) {
+      axios.delete(this.$url + '/eliminar_usuario_admin/' + id, {
+        headers: { 'Authorization': this.$store.state.token }
+      }).then(() => {
+        this.$bvModal.hide('delete-' + id);
+        this.init_data();
+        this.$notify({
+          group: 'foo',
+          title: 'ELIMINADO',
+          type: 'success',
+          text: 'Colaborador eliminado correctamente'
+        });
+      }).catch((error) => {
+        this.$notify({
+          group: 'foo',
+          title: 'ERROR',
+          type: 'error',
+          text: error?.response?.data?.message || 'No se pudo eliminar el colaborador'
+        });
+      });
+    },
+
     getAvatarUrl(avatar) {
       if (!avatar || avatar === 'default.jpg' || avatar === 'default.png') {
         return '/assets/media/usuario.png';
       }
       return this.$url + '/obtener_avatar_usuario/' + avatar;
+    },
+
+    isCurrentUser(item) {
+      try {
+        const localUser = JSON.parse(localStorage.getItem('usuario') || 'null');
+        return String(localUser?._id || '') === String(item?._id || '');
+      } catch (_) {
+        return false;
+      }
     }
 
   },

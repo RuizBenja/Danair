@@ -73,8 +73,7 @@ export default {
       this.userTick = Date.now();
     },
     logout() {
-      this.$store.dispatch('saveToken', null);
-      localStorage.removeItem('usuario');
+      this.$store.dispatch('logout');
       this.$router.push({ name: 'login' });
     }
   },

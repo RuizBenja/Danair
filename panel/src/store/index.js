@@ -17,7 +17,13 @@ export default new Vuex.Store({
   actions: {
     saveToken({commit},token){
       commit('setToken', token);
-      localStorage.setItem('token',token)   
+      if (token) localStorage.setItem('token',token);
+      else localStorage.removeItem('token');
+    },
+    logout({ commit }){
+      commit('setToken', null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
     }
   },
   modules: {

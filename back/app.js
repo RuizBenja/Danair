@@ -13,20 +13,11 @@ const io = new Server(httpServer, {
   cors:{origin: '*'}
  });
 
-io.on("connection", (socket) => {
-  // ...
-  socket.on('send_cart', function(data){
-      io.emit('listen_cart', data);
-      console.log(data)
-  });
-});
+io.on("connection", () => {});
 
-var cliente_route = require('./routes/cliente.js');
 var usuario_route = require('./routes/usuario.js');
 var producto_route = require('./routes/producto.js');
 var public_route = require('./routes/public.js');
-var customer_route = require('./routes/customer.js');
-// var venta_route = require('./routes/venta.js');
 var contacto_route = require('./routes/contacto.js');
 var proveedor_route = require('./routes/proveedor.js');
 var servicio_route = require('./routes/servicio.js');
@@ -35,6 +26,7 @@ var proyecto_route = require('./routes/proyecto.js');
 var marca_route = require('./routes/marca.js');
 var marca_producto_route = require('./routes/marcaProducto.js');
 var referencia_route = require('./routes/referencia.js');
+var categoria_referencia_route = require('./routes/categoriaReferencia.js');
 
 
 
@@ -63,13 +55,9 @@ app.use((req,res,next)=>{
     next();
 });
 
-app.use('/api',cliente_route);
 app.use('/api',usuario_route);
 app.use('/api',producto_route);
 app.use('/api',public_route);
-app.use('/api',customer_route);
-// app.use('/api', mercadopago_route);
-// app.use('/api', venta_route);
 app.use('/api', contacto_route);
 app.use('/api', proveedor_route);
 app.use('/api', servicio_route);
@@ -78,7 +66,7 @@ app.use('/api', proyecto_route);
 app.use('/api', marca_route);
 app.use('/api', marca_producto_route);
 app.use('/api', referencia_route);
-app.use('/api', require('./routes/dashboard'));
+app.use('/api', categoria_referencia_route);
 
 
 
